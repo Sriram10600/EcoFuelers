@@ -11,17 +11,21 @@ const Dashboard: React.FC = () => {
   
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-screen-2xl mx-auto">
+      {/* Top Row - Energy Chart and Leaderboard */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <EnergyChart className="xl:col-span-2" />
         <LeaderboardCard />
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Middle Row - Office Map */}
+      <div>
         <OfficeMap />
-        <div className="grid grid-cols-1 gap-6">
-          <RecommendationsCard employeeId={user?.id || ''} />
-          <AchievementsPanel />
-        </div>
+      </div>
+      
+      {/* Bottom Row - Recommendations and Achievements */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecommendationsCard employeeId={user?.id || ''} />
+        <AchievementsPanel />
       </div>
     </div>
   );

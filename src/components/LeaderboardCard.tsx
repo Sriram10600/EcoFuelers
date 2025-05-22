@@ -83,7 +83,7 @@ const LeaderboardCard: React.FC<LeaderboardCardProps> = ({ className = '' }) => 
         </div>
         
         <button 
-          onClick={() => navigate('/achievements')}
+          onClick={() => navigate('/leaderboard')}
           className="mt-4 w-full py-2 text-sm font-medium text-gray-600 hover:text-gray-800 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors"
         >
           View Full Leaderboard

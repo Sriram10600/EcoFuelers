@@ -8,7 +8,8 @@ import {
   HelpCircle,
   Leaf,
   LightbulbOff,
-  Zap
+  Zap,
+  Gamepad2
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
@@ -84,15 +85,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onNavigate }) => {
           </button>
           
           <button 
-            onClick={() => onNavigate('/achievements')}
+            onClick={() => onNavigate('/leaderboard')}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md font-medium transition-colors ${
-              currentPath === '/achievements' 
+              currentPath === '/leaderboard' 
                 ? 'bg-emerald-50 text-emerald-700' 
                 : 'text-gray-700 hover:bg-gray-50'
             }`}
           >
             <Award size={18} />
-            <span>Achievements</span>
+            <span>Leaderboard</span>
+          </button>
+          
+          <button 
+            onClick={() => onNavigate('/training')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md font-medium transition-colors ${
+              currentPath === '/training' 
+                ? 'bg-emerald-50 text-emerald-700' 
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Gamepad2 size={18} />
+            <span>Training & Challenges</span>
           </button>
           
           <div className="pt-4 mt-4 border-t border-gray-200">

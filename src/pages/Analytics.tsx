@@ -2,17 +2,150 @@ import React, { useState } from 'react';
 import { BarChart2, TrendingUp, Calendar, ArrowUpRight, ArrowDownRight, Download } from 'lucide-react';
 import { TimeRange } from '../types';
 import { getAnalyticsData } from '../data/mockData';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const analyticsData = getAnalyticsData(timeRange);
   
   // Calculate overall trends
-  const currentMonth = analyticsData[analyticsData.length - 1];
-  const previousMonth = analyticsData[analyticsData.length - 2];
-  const consumptionTrend = ((currentMonth.actualConsumption - previousMonth.actualConsumption) / previousMonth.actualConsumption) * 100;
-  const emissionsTrend = ((currentMonth.co2Emissions - previousMonth.co2Emissions) / previousMonth.co2Emissions) * 100;
-  const savingsTrend = ((currentMonth.costSavings - previousMonth.costSavings) / previousMonth.costSavings) * 100;
+  const currentData = analyticsData[analyticsData.length - 1];
+  const previousData = analyticsData[analyticsData.length - 2] || analyticsData[analyticsData.length - 1];
+  const consumptionTrend = ((currentData.actualConsumption - previousData.actualConsumption) / previousData.actualConsumption) * 100;
+  const emissionsTrend = ((currentData.co2Emissions - previousData.co2Emissions) / previousData.co2Emissions) * 100;
+  const savingsTrend = ((currentData.costSavings - previousData.costSavings) / previousData.costSavings) * 100;
+
+  // Format labels based on time range
+  const formatLabel = (date: string) => {
+    const dateObj = new Date(date);
+    switch (timeRange) {
+      case 'day':
+        return dateObj.toLocaleTimeString('en-US', { 
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true 
+        });
+      case 'week':
+        return dateObj.toLocaleDateString('en-US', { 
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+      case 'month':
+        return dateObj.toLocaleDateString('en-US', { 
+          month: 'short',
+          day: 'numeric'
+        });
+      default:
+        return '';
+    }
+  };
+
+  const labels = analyticsData.map(data => formatLabel(data.date));
+
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        label: 'Actual Consumption',
+        data: analyticsData.map(data => data.actualConsumption),
+        backgroundColor: 'rgba(59, 130, 246, 0.9)', // blue-500
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 2,
+        tension: 0.4,
+      },
+      {
+        label: 'Predicted Consumption',
+        data: analyticsData.map(data => data.predictedConsumption),
+        backgroundColor: 'rgba(147, 197, 253, 0.7)', // blue-200
+        borderColor: 'rgba(147, 197, 253, 1)',
+        borderWidth: 2,
+        tension: 0.4,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          title: (context: any) => {
+            const index = context[0].dataIndex;
+            const date = new Date(analyticsData[index].date);
+            switch (timeRange) {
+              case 'day':
+                return date.toLocaleString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                });
+              case 'week':
+                return date.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'short',
+                  day: 'numeric'
+                });
+              case 'month':
+                return date.toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                });
+              default:
+                return '';
+            }
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Energy Consumption (kWh)',
+        },
+      },
+      x: {
+        grid: {
+          display: false
+        }
+      }
+    },
+  };
 
   return (
     <div className="p-4 md:p-6 max-w-screen-2xl mx-auto">
@@ -24,7 +157,7 @@ const Analytics: React.FC = () => {
         
         <div className="flex items-center gap-3">
           <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            {(['week', 'month', 'year'] as TimeRange[]).map((range) => (
+            {(['day', 'week', 'month'] as TimeRange[]).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
@@ -54,7 +187,7 @@ const Analytics: React.FC = () => {
           </div>
           
           <div className="flex items-end gap-2">
-            <span className="text-3xl font-bold text-gray-800">{currentMonth.actualConsumption.toFixed(1)}</span>
+            <span className="text-3xl font-bold text-gray-800">{currentData.actualConsumption.toFixed(1)}</span>
             <span className="text-gray-500 mb-1">kWh</span>
             <span className={`ml-auto text-sm flex items-center ${consumptionTrend < 0 ? 'text-emerald-500' : 'text-red-500'}`}>
               {consumptionTrend < 0 ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
@@ -63,8 +196,8 @@ const Analytics: React.FC = () => {
           </div>
           
           <div className="mt-6">
-            <div className="text-sm text-gray-500 mb-2">Predicted Next Month</div>
-            <div className="text-xl font-semibold text-blue-600">{currentMonth.predictedConsumption.toFixed(1)} kWh</div>
+            <div className="text-sm text-gray-500 mb-2">Predicted Next {timeRange}</div>
+            <div className="text-xl font-semibold text-blue-600">{currentData.predictedConsumption.toFixed(1)} kWh</div>
           </div>
         </div>
 
@@ -75,7 +208,7 @@ const Analytics: React.FC = () => {
           </div>
           
           <div className="flex items-end gap-2">
-            <span className="text-3xl font-bold text-gray-800">{currentMonth.co2Emissions.toFixed(1)}</span>
+            <span className="text-3xl font-bold text-gray-800">{currentData.co2Emissions.toFixed(1)}</span>
             <span className="text-gray-500 mb-1">kg</span>
             <span className={`ml-auto text-sm flex items-center ${emissionsTrend < 0 ? 'text-emerald-500' : 'text-red-500'}`}>
               {emissionsTrend < 0 ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
@@ -84,8 +217,8 @@ const Analytics: React.FC = () => {
           </div>
           
           <div className="mt-6">
-            <div className="text-sm text-gray-500 mb-2">Predicted Next Month</div>
-            <div className="text-xl font-semibold text-emerald-600">{currentMonth.predictedEmissions.toFixed(1)} kg</div>
+            <div className="text-sm text-gray-500 mb-2">Predicted Next {timeRange}</div>
+            <div className="text-xl font-semibold text-emerald-600">{currentData.predictedEmissions.toFixed(1)} kg</div>
           </div>
         </div>
 
@@ -96,7 +229,7 @@ const Analytics: React.FC = () => {
           </div>
           
           <div className="flex items-end gap-2">
-            <span className="text-3xl font-bold text-gray-800">${currentMonth.costSavings.toFixed(2)}</span>
+            <span className="text-3xl font-bold text-gray-800">${currentData.costSavings.toFixed(2)}</span>
             <span className={`ml-auto text-sm flex items-center ${savingsTrend > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
               {savingsTrend > 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
               {Math.abs(savingsTrend).toFixed(1)}%
@@ -104,15 +237,17 @@ const Analytics: React.FC = () => {
           </div>
           
           <div className="mt-6">
-            <div className="text-sm text-gray-500 mb-2">Predicted Next Month</div>
-            <div className="text-xl font-semibold text-amber-600">${currentMonth.predictedSavings.toFixed(2)}</div>
+            <div className="text-sm text-gray-500 mb-2">Predicted Next {timeRange}</div>
+            <div className="text-xl font-semibold text-amber-600">${currentData.predictedSavings.toFixed(2)}</div>
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-800">Consumption Trends & Predictions</h3>
+          <h3 className="text-lg font-semibold text-gray-800">
+            {timeRange === 'day' ? 'Hourly' : 'Daily'} Consumption Trends & Predictions
+          </h3>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -125,30 +260,12 @@ const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="h-80 relative">
-          <div className="absolute inset-0 flex items-end justify-between">
-            {analyticsData.map((data, index) => (
-              <div key={index} className="flex-1 flex flex-col items-center">
-                <div className="relative w-full px-1">
-                  {/* Actual consumption bar */}
-                  <div
-                    className="w-full bg-blue-500 rounded-t transition-all duration-500"
-                    style={{ height: `${(data.actualConsumption / 200) * 100}%`, opacity: 0.9 }}
-                  />
-                  {/* Predicted consumption bar */}
-                  {data.predictedConsumption > 0 && (
-                    <div
-                      className="w-full bg-blue-200 rounded-t transition-all duration-500 mt-1"
-                      style={{ height: `${(data.predictedConsumption / 200) * 100}%`, opacity: 0.7 }}
-                    />
-                  )}
-                </div>
-                <div className="mt-2 text-xs text-gray-500">
-                  {new Date(data.date).toLocaleDateString('en-US', { month: 'short' })}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="h-80">
+          {timeRange === 'day' ? (
+            <Bar data={chartData} options={chartOptions} />
+          ) : (
+            <Line data={chartData} options={chartOptions} />
+          )}
         </div>
       </div>
     </div>

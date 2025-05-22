@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Leaf, MenuIcon, BellIcon, Settings, User, LogOut } from 'lucide-react';
+import { Leaf, MenuIcon, Settings, User, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -9,7 +9,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   
   const handleSignOut = async () => {
@@ -18,6 +18,17 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
       navigate('/login');
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-purple-100 text-purple-700';
+      case 'manager':
+        return 'bg-blue-100 text-blue-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
   };
   
@@ -40,41 +51,50 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <button className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 relative">
-              <BellIcon size={20} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-          </div>
-          
+        <div className="flex items-center">
           <div className="relative">
             <button 
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 hover:bg-gray-100 rounded-full p-1 pr-2 transition-all"
+              className="flex items-center gap-2 hover:bg-gray-100 rounded-full p-1 pr-3 transition-all"
             >
               <img 
-                src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=150" 
+                src={user?.avatar || "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=150"}
                 alt="User avatar"
                 className="w-8 h-8 rounded-full object-cover border border-gray-200"
               />
-              <span className="text-sm font-medium text-gray-700 hidden sm:block">Alex Johnson</span>
+              <div className="hidden sm:block text-left">
+                <span className="text-sm font-medium text-gray-700 block">{user?.name}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${getRoleBadgeColor(user?.role || 'employee')} capitalize`}>
+                  {user?.role}
+                </span>
+              </div>
             </button>
             
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10">
                 <div className="px-4 py-2 border-b border-gray-100">
-                  <div className="font-medium text-gray-800">Alex Johnson</div>
-                  <div className="text-xs text-gray-500">alex.johnson@ecofuelers.com</div>
+                  <div className="font-medium text-gray-800">{user?.name}</div>
+                  <div className="text-xs text-gray-500">{user?.email}</div>
+                  <div className={`text-xs mt-1 px-2 py-0.5 rounded-full ${getRoleBadgeColor(user?.role || 'employee')} inline-block capitalize`}>
+                    {user?.role}
+                  </div>
                 </div>
-                <a href="#" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <Link 
+                  to="/profile" 
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowUserMenu(false)}
+                >
                   <User size={16} />
                   <span>Profile</span>
-                </a>
-                <a href="#" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                </Link>
+                <Link 
+                  to="/settings" 
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowUserMenu(false)}
+                >
                   <Settings size={16} />
                   <span>Settings</span>
-                </a>
+                </Link>
                 <div className="border-t border-gray-100 my-1"></div>
                 <button 
                   onClick={handleSignOut}
