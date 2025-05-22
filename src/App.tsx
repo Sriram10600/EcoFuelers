@@ -8,6 +8,9 @@ import Analytics from './pages/Analytics';
 import Leaderboard from './pages/Leaderboard';
 import Training from './pages/Training';
 import Profile from './pages/Profile';
+import Quiz from './pages/Quiz';
+import Settings from './pages/Settings';
+import HelpContact from './pages/HelpContact';
 import Layout from './components/Layout';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -28,6 +31,9 @@ function App() {
           <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
           <Route path="/training" element={<ProtectedRoute><Training /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/help" element={<ProtectedRoute><HelpContact /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -32,7 +32,7 @@ interface EnergyChartProps {
 }
 
 const EnergyChart: React.FC<EnergyChartProps> = ({ className = '' }) => {
-  const [timeRange, setTimeRange] = useState<TimeRange>('week');
+  const [timeRange, setTimeRange] = useState<TimeRange>('day');
   const [isLoading, setIsLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<any[]>([]);
   

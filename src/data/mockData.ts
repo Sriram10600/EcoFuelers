@@ -1,4 +1,4 @@
-import { Employee, Zone, EnergyData, Achievement, TimeRange, WeeklyChallenge, EcoBadge, TrainingModule } from '../types';
+import { Employee, Zone, EnergyData, Achievement, TimeRange, WeeklyChallenge, EcoBadge, TrainingModule, QuizQuestion } from '../types';
 
 // Generate dates for the past month
 const generatePastDates = (days: number) => {
@@ -862,4 +862,162 @@ export const getAvailableTrainingModules = (userId: string) => {
         ? 'locked'
         : 'available'
   }));
+};
+
+export const quizQuestions: QuizQuestion[] = [
+  {
+    id: 'q1',
+    question: 'What is the most energy-efficient way to cool your workspace?',
+    options: [
+      'Open windows and use natural ventilation when possible',
+      'Run the AC at maximum power',
+      'Keep windows open while AC is running',
+      'Use a personal fan with AC at maximum'
+    ],
+    correctAnswer: 0,
+    explanation: 'Natural ventilation through windows when weather permits is the most energy-efficient cooling method, reducing the need for artificial cooling.',
+    points: 10,
+    category: 'behavior',
+    difficulty: 'easy'
+  },
+  {
+    id: 'q2',
+    question: 'Which practice saves the most energy for computer usage?',
+    options: [
+      'Keeping the computer on sleep mode',
+      'Using dark mode all the time',
+      'Shutting down completely when not in use',
+      'Using a screensaver'
+    ],
+    correctAnswer: 2,
+    explanation: 'Completely shutting down your computer when not in use saves the most energy, as even sleep mode consumes some power.',
+    points: 15,
+    category: 'equipment',
+    difficulty: 'easy'
+  },
+  {
+    id: 'q3',
+    question: 'What percentage of energy can be saved by using dark mode on OLED screens?',
+    options: [
+      'Up to 20%',
+      'Up to 40%',
+      'Up to 60%',
+      'Up to 80%'
+    ],
+    correctAnswer: 1,
+    explanation: 'Dark mode can save up to 40% of energy consumption on OLED screens, as these screens don\'t need to power pixels to display black.',
+    points: 20,
+    category: 'equipment',
+    difficulty: 'medium'
+  },
+  {
+    id: 'q4',
+    question: 'Which lighting option is most energy-efficient?',
+    options: [
+      'Fluorescent bulbs',
+      'Halogen bulbs',
+      'LED bulbs',
+      'Incandescent bulbs'
+    ],
+    correctAnswer: 2,
+    explanation: 'LED bulbs are the most energy-efficient lighting option, using up to 75% less energy and lasting 25 times longer than incandescent lighting.',
+    points: 15,
+    category: 'equipment',
+    difficulty: 'easy'
+  },
+  {
+    id: 'q5',
+    question: 'What is the optimal temperature range for office AC in summer?',
+    options: [
+      '18-20°C (64-68°F)',
+      '20-22°C (68-72°F)',
+      '23-26°C (73-79°F)',
+      '27-30°C (81-86°F)'
+    ],
+    correctAnswer: 2,
+    explanation: '23-26°C (73-79°F) is the optimal range for office AC in summer, balancing comfort and energy efficiency.',
+    points: 20,
+    category: 'behavior',
+    difficulty: 'medium'
+  },
+  {
+    id: 'q6',
+    question: 'Which of these actions has the largest impact on energy conservation?',
+    options: [
+      'Using dark mode',
+      'Turning off lights in empty rooms',
+      'Using a laptop instead of desktop',
+      'Using power strips for equipment'
+    ],
+    correctAnswer: 1,
+    explanation: 'Turning off lights in empty rooms has the largest immediate impact on energy conservation, as lighting can account for up to 40% of energy use in offices.',
+    points: 15,
+    category: 'behavior',
+    difficulty: 'medium'
+  },
+  {
+    id: 'q7',
+    question: 'How much energy does a computer in sleep mode use compared to when fully powered?',
+    options: [
+      'About 1-3%',
+      'About 5-10%',
+      'About 20-30%',
+      'About 40-50%'
+    ],
+    correctAnswer: 0,
+    explanation: 'A computer in sleep mode typically uses only 1-3% of the power it consumes when fully operational.',
+    points: 25,
+    category: 'equipment',
+    difficulty: 'hard'
+  },
+  {
+    id: 'q8',
+    question: 'Which sustainable practice has the highest impact on office energy consumption?',
+    options: [
+      'Using recycled paper',
+      'Implementing motion sensor lights',
+      'Using energy-efficient appliances',
+      'Having plants in the office'
+    ],
+    correctAnswer: 2,
+    explanation: 'Using energy-efficient appliances has the highest impact on office energy consumption, potentially reducing energy use by 30-50%.',
+    points: 20,
+    category: 'sustainability',
+    difficulty: 'medium'
+  },
+  {
+    id: 'q9',
+    question: 'What is the most effective way to use natural light in the office?',
+    options: [
+      'Keep blinds fully open all day',
+      'Use adjustable blinds to control glare',
+      'Close blinds and use artificial light',
+      'Remove blinds completely'
+    ],
+    correctAnswer: 1,
+    explanation: 'Using adjustable blinds to control glare while maximizing natural light is the most effective way to balance lighting needs and energy efficiency.',
+    points: 20,
+    category: 'behavior',
+    difficulty: 'medium'
+  },
+  {
+    id: 'q10',
+    question: 'Which factor contributes most to unnecessary energy waste in offices?',
+    options: [
+      'Old light bulbs',
+      'Equipment left on standby',
+      'Inefficient AC systems',
+      'Manual thermostats'
+    ],
+    correctAnswer: 1,
+    explanation: 'Equipment left on standby (phantom power) is one of the largest contributors to unnecessary energy waste in offices, accounting for up to 10% of electricity usage.',
+    points: 25,
+    category: 'sustainability',
+    difficulty: 'hard'
+  }
+];
+
+export const getRandomQuizQuestions = (count: number = 5): QuizQuestion[] => {
+  const shuffled = [...quizQuestions].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
 };

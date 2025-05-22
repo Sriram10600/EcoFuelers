@@ -290,7 +290,7 @@ const OfficeMap: React.FC<OfficeMapProps> = ({ className = '' }) => {
             </div>
           ) : (
             <p className="text-sm text-gray-500">
-              Select an employee to see their details or hover over a zone to view energy statistics.
+              Hover over a zone to view detailed energy statistics and team information.
             </p>
           )}
         </div>

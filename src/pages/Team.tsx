@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
-import { Users, Search, ArrowUpRight, ArrowDownRight, Battery, Zap, ChevronDown, ChevronRight } from 'lucide-react';
-import { Employee } from '../types';
-import { allEmployees, managers, getEmployeesByManager } from '../data/mockData';
+import React, { useState, useMemo } from 'react';
+import { Users, Search, ArrowUpRight, ArrowDownRight, Award, Target, ChevronDown, ChevronRight, UserPlus, Download, Filter } from 'lucide-react';
+import { User, Department, Role } from '../types/index';
+import { users, getUser, getTeamMembers, getTeamMatesForEmployee, getManagerForEmployee, getAllUsers } from '../data/users';
 import { useAuth } from '../contexts/AuthContext';
+import AddUserModal from '../components/AddUserModal';
 
 const Team: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedManagers, setExpandedManagers] = useState<string[]>([]);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedRole, setSelectedRole] = useState<Role | 'all'>('all');
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const { user } = useAuth();
-  
+
   const toggleManager = (managerId: string) => {
     setExpandedManagers(prev => 
       prev.includes(managerId) 
@@ -17,86 +21,140 @@ const Team: React.FC = () => {
     );
   };
 
-  // Get the appropriate list of employees based on the current user's role
-  const getVisibleEmployees = (): { managers: Employee[], employees: { [key: string]: Employee[] } } => {
-    if (!user) return { managers: [], employees: {} };
+  const handleAddUser = (userData: any) => {
+    // Here you would typically make an API call to add the user
+    console.log('Adding new user:', userData);
+    // For now, we'll just close the modal
+    setIsAddUserModalOpen(false);
+  };
+
+  // Get the appropriate list of team members based on the current user's role
+  const getVisibleTeamMembers = (): { managers: User[], teamMembers: User[] } => {
+    if (!user) return { managers: [], teamMembers: [] };
     
-    if (user.role === 'admin') {
-      // Admin sees all managers and their employees
-      const employeesByManager = managers.reduce((acc, manager) => {
-        acc[manager.id] = getEmployeesByManager(manager.id);
-        return acc;
-      }, {} as { [key: string]: Employee[] });
-      
+    const currentUser = getUser(user.id);
+    if (!currentUser) return { managers: [], teamMembers: [] };
+
+    if (currentUser.role === 'admin') {
+      // Admin sees all users
+      const allUsers = getAllUsers(currentUser.id);
       return {
-        managers: managers,
-        employees: employeesByManager
+        managers: allUsers.filter(u => u.isManager),
+        teamMembers: allUsers.filter(u => !u.isManager && u.role !== 'admin')
       };
-    } else if (user.role === 'manager') {
-      // Manager sees themselves and their direct reports
-      const managerData = managers.find(m => m.email === user.email);
-      if (!managerData) return { managers: [], employees: {} };
-      
+    } else if (currentUser.isManager) {
+      // Manager sees their direct reports
       return {
-        managers: [managerData],
-        employees: {
-          [managerData.id]: getEmployeesByManager(managerData.id)
-        }
+        managers: [currentUser],
+        teamMembers: getTeamMembers(currentUser.id)
       };
     } else {
       // Employee sees their manager and fellow team members
-      const employeeData = allEmployees.find(e => e.email === user.email);
-      if (!employeeData?.managerId) return { managers: [], employees: {} };
-      
-      const manager = managers.find(m => m.id === employeeData.managerId);
-      if (!manager) return { managers: [], employees: {} };
+      const manager = getManagerForEmployee(currentUser.id);
+      const teamMates = getTeamMatesForEmployee(currentUser.id);
       
       return {
-        managers: [manager],
-        employees: {
-          [manager.id]: getEmployeesByManager(manager.id)
-        }
+        managers: manager ? [manager] : [],
+        teamMembers: teamMates
       };
     }
   };
 
-  const { managers: visibleManagers, employees: employeesByManager } = getVisibleEmployees();
+  const { managers, teamMembers } = getVisibleTeamMembers();
 
-  const renderEmployeeCard = (employee: Employee, isManager: boolean = false) => (
+  const filteredTeamMembers = useMemo(() => {
+    let filtered = teamMembers;
+
+    // Apply department filter
+    if (selectedDepartment !== 'all') {
+      filtered = filtered.filter(member => member.department === selectedDepartment);
+    }
+
+    // Apply role filter
+    if (selectedRole !== 'all') {
+      filtered = filtered.filter(member => {
+        // Handle both simple role strings and specific job titles
+        const memberRole = member.role.toLowerCase();
+        return memberRole === selectedRole || 
+               (selectedRole === 'manager' && member.isManager) ||
+               (selectedRole === 'employee' && !member.isManager && memberRole !== 'admin');
+      });
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(member => 
+        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return filtered;
+  }, [teamMembers, selectedDepartment, selectedRole, searchTerm]);
+
+  // Filter managers based on role and department
+  const filteredManagers = useMemo(() => {
+    let filtered = managers;
+
+    if (selectedDepartment !== 'all') {
+      filtered = filtered.filter(manager => manager.department === selectedDepartment);
+    }
+
+    if (selectedRole !== 'all') {
+      filtered = filtered.filter(manager => {
+        const managerRole = manager.role.toLowerCase();
+        return managerRole === selectedRole || 
+               (selectedRole === 'manager' && manager.isManager);
+      });
+    }
+
+    return filtered;
+  }, [managers, selectedDepartment, selectedRole]);
+
+  const renderUserCard = (user: User, isManager: boolean = false) => (
     <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow ${
-      isManager ? 'border-l-4 border-l-purple-500' : ''
+      isManager ? 'border-l-4 border-l-emerald-500' : ''
     }`}>
       <div className="flex items-start gap-3">
-        <img
-          src={employee.avatar}
-          alt={employee.name}
-          className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
-        />
+        <div className="relative w-14 h-14">
+          {user.role === 'admin' ? (
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+              <Users className="w-3 h-3 text-white" />
+            </div>
+          ) : null}
+          <img
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=34d399&textColor=ffffff&size=56`}
+            alt={user.name}
+            className="w-14 h-14 rounded-full object-cover border-2 border-gray-100"
+            style={{ aspectRatio: '1/1' }}
+          />
+        </div>
         <div className="flex-1">
-          <h3 className="font-medium text-gray-800">{employee.name}</h3>
-          <p className="text-sm text-gray-500">{employee.department}</p>
-          <p className="text-xs text-gray-400">{employee.email}</p>
+          <h3 className="text-lg font-semibold text-gray-800">{user.name}</h3>
+          <p className="text-sm text-gray-500">{user.department}</p>
+          <p className="text-xs text-gray-400">{user.email}</p>
         </div>
         <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-          employee.role === 'admin' 
+          user.role === 'admin'
             ? 'bg-purple-100 text-purple-700'
-            : employee.role === 'manager'
-            ? 'bg-blue-100 text-blue-700'
+            : user.isManager
+            ? 'bg-emerald-100 text-emerald-700'
             : 'bg-gray-100 text-gray-700'
         }`}>
-          {employee.role}
+          {user.role}
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div className="bg-gray-50 rounded-lg p-2">
-          <div className="text-xs text-gray-500 mb-1">Performance</div>
+          <div className="text-xs text-gray-500 mb-1">Energy Score</div>
           <div className="flex items-center justify-between">
-            <span className="font-medium text-gray-800">{employee.performanceScore}%</span>
+            <span className="font-medium text-gray-800">{user.energyScore}</span>
             <span className={`text-xs flex items-center ${
-              employee.performanceScore > 85 ? 'text-emerald-600' : 'text-amber-600'
+              user.energyScore > 85 ? 'text-emerald-600' : 'text-amber-600'
             }`}>
-              {employee.performanceScore > 85 ? (
+              {user.energyScore > 85 ? (
                 <ArrowUpRight className="w-3 h-3" />
               ) : (
                 <ArrowDownRight className="w-3 h-3" />
@@ -106,30 +164,37 @@ const Team: React.FC = () => {
         </div>
 
         <div className="bg-gray-50 rounded-lg p-2">
-          <div className="text-xs text-gray-500 mb-1">Energy Score</div>
+          <div className="text-xs text-gray-500 mb-1">Badges</div>
           <div className="flex items-center justify-between">
-            <span className="font-medium text-gray-800">{employee.energyScore}%</span>
-            <span className={`text-xs flex items-center ${
-              employee.energyScore > 85 ? 'text-emerald-600' : 'text-amber-600'
-            }`}>
-              {employee.energyScore > 85 ? (
-                <ArrowUpRight className="w-3 h-3" />
-              ) : (
-                <ArrowDownRight className="w-3 h-3" />
-              )}
-            </span>
+            <span className="font-medium text-gray-800">{user.badges.length}</span>
+            <Award className="w-4 h-4 text-purple-500" />
           </div>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-        <div className="flex items-center gap-1.5">
-          <Battery className="w-4 h-4 text-blue-500" />
-          <span className="text-gray-600">{employee.laptopHours.toFixed(2)}h/day</span>
+      <div className="mt-4">
+        <div className="text-xs text-gray-500 mb-2">Badges & Achievements</div>
+        <div className="flex flex-wrap gap-2">
+          {user.badges.map((badge, index) => (
+            <div
+              key={index}
+              className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-full"
+              title={badge}
+            >
+              <Award className="w-3 h-3 text-emerald-500" />
+              <span className="text-xs text-gray-700">{badge}</span>
+            </div>
+          ))}
         </div>
-        <div className="flex items-center gap-1.5">
-          <Zap className="w-4 h-4 text-purple-500" />
-          <span className="text-gray-600">{employee.awePoints} pts</span>
+        <div className="mt-2 text-sm text-gray-700">
+          {user.achievements[0] ? (
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-purple-500" />
+              <span>{user.achievements[0]}</span>
+            </div>
+          ) : (
+            'No recent achievements'
+          )}
         </div>
       </div>
     </div>
@@ -138,28 +203,70 @@ const Team: React.FC = () => {
   return (
     <div className="p-4 md:p-6 max-w-screen-2xl mx-auto">
       <div className="mb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2">
-            <Users className="w-6 h-6 text-purple-600" />
-            <h1 className="text-2xl font-bold text-gray-800">Team Management</h1>
+            <Users className="w-6 h-6 text-emerald-600" />
+            <h1 className="text-2xl font-bold text-gray-800">Team Overview</h1>
           </div>
-          <div className="relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search team members..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
+          <div className="flex items-center gap-4">
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => setIsAddUserModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
+              >
+                <UserPlus size={18} />
+                <span>Add User</span>
+              </button>
+            )}
+            <div className="relative">
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search team members..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+            </div>
+            {user?.role === 'admin' && (
+              <>
+                <div className="relative">
+                  <Filter className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <select
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
+                  >
+                    <option value="all">All Departments</option>
+                    {Object.values(Department).map((dept) => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="relative">
+                  <Filter className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value as Role | 'all')}
+                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
+                  >
+                    <option value="all">All Roles</option>
+                    <option value="manager">Manager</option>
+                    <option value="employee">Employee</option>
+                  </select>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
       <div className="space-y-6">
-        {visibleManagers.map(manager => {
-          const teamMembers = employeesByManager[manager.id] || [];
+        {filteredManagers.map(manager => {
           const isExpanded = expandedManagers.includes(manager.id);
+          const departmentMembers = filteredTeamMembers.filter(
+            member => member.department === manager.department
+          );
           
           return (
             <div key={manager.id} className="space-y-4">
@@ -175,16 +282,19 @@ const Team: React.FC = () => {
                   )}
                 </button>
                 <h2 className="text-lg font-semibold text-gray-800">{manager.department} Team</h2>
+                <span className="text-sm text-gray-500">
+                  ({departmentMembers.length} members)
+                </span>
               </div>
               
-              {renderEmployeeCard(manager, true)}
+              {renderUserCard(manager, true)}
               
               {isExpanded && (
                 <div className="ml-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {teamMembers.map(employee => (
-                    <div key={employee.id} className="relative">
+                  {departmentMembers.map(member => (
+                    <div key={member.id} className="relative">
                       <div className="absolute -left-8 top-1/2 w-6 border-t-2 border-gray-200"></div>
-                      {renderEmployeeCard(employee)}
+                      {renderUserCard(member)}
                     </div>
                   ))}
                 </div>
@@ -193,6 +303,12 @@ const Team: React.FC = () => {
           );
         })}
       </div>
+
+      <AddUserModal
+        isOpen={isAddUserModalOpen}
+        onClose={() => setIsAddUserModalOpen(false)}
+        onAddUser={handleAddUser}
+      />
     </div>
   );
 };

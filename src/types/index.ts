@@ -104,3 +104,58 @@ export interface TrainingModule {
   prerequisites?: string[];
   status: 'available' | 'locked' | 'completed';
 }
+
+export type Role = 'admin' | 'manager' | 'employee';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  role: Role;
+  department: string;
+  isManager: boolean;
+  avatar?: string;
+  badges: string[];
+  achievements: string[];
+  energyScore: number;
+  joinDate: string;
+  permissions: {
+    canViewAllData: boolean;
+    canEditUsers: boolean;
+    canManageRoles: boolean;
+    canViewAnalytics: boolean;
+    canExportData: boolean;
+  };
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+export interface QuizResult {
+  score: number;
+  totalQuestions: number;
+  timeTaken: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+}
+
+export interface QuizAttempt {
+  questionId: string;
+  selectedAnswer: number;
+  isCorrect: boolean;
+  timeTaken: number;
+}
+
+export interface AuthUser extends Omit<User, 'password'> {}
+
+export enum Department {
+  Management = 'Management',
+  IT = 'IT',
+  Operations = 'Operations'
+}

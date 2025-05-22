@@ -28,7 +28,7 @@ ChartJS.register(
 );
 
 const Analytics: React.FC = () => {
-  const [timeRange, setTimeRange] = useState<TimeRange>('month');
+  const [timeRange, setTimeRange] = useState<TimeRange>('day');
   const analyticsData = getAnalyticsData(timeRange);
   
   // Calculate overall trends

@@ -7,9 +7,8 @@ import {
   Settings, 
   HelpCircle,
   Leaf,
-  LightbulbOff,
-  Zap,
-  Gamepad2
+  Gamepad2,
+  Brain
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
@@ -107,34 +106,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onNavigate }) => {
             <Gamepad2 size={18} />
             <span>Training & Challenges</span>
           </button>
-          
-          <div className="pt-4 mt-4 border-t border-gray-200">
-            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</h3>
-            
-            <div className="mt-3 space-y-1">
-              <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-                <LightbulbOff size={16} />
-                <span>Turn off unused lights</span>
-              </a>
-              
-              <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-                <Zap size={16} />
-                <span>Energy-saving mode</span>
-              </a>
-            </div>
-          </div>
+
+          <button 
+            onClick={() => onNavigate('/quiz')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md font-medium transition-colors ${
+              currentPath === '/quiz' 
+                ? 'bg-emerald-50 text-emerald-700' 
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Brain size={18} />
+            <span>Energy Quiz</span>
+          </button>
         </nav>
         
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 space-y-1">
-          <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+          <button
+            onClick={() => onNavigate('/settings')}
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md font-medium transition-colors ${
+              currentPath === '/settings'
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
             <Settings size={16} />
             <span>Settings</span>
-          </a>
+          </button>
           
-          <a href="#" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+          <button
+            onClick={() => onNavigate('/help')}
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md font-medium transition-colors ${
+              currentPath === '/help'
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
             <HelpCircle size={16} />
             <span>Help & Support</span>
-          </a>
+          </button>
         </div>
       </aside>
     </>
