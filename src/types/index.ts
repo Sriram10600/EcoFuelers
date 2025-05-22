@@ -3,18 +3,29 @@ import { LucideIcon } from 'lucide-react';
 export interface Employee {
   id: string;
   name: string;
-  avatar: string;
-  department: string;
-  position: { x: number; y: number };
-  laptopHours: number;
-  isDarkMode: boolean;
-  awePoints: number;
   email: string;
+  department: string;
   role: 'admin' | 'manager' | 'employee';
   managerId?: string;
-  joinDate: string;
+  position: { x: number; y: number };
+  laptopHours: number;
+  awePoints: number;
   performanceScore: number;
   energyScore: number;
+  badges: string[];
+  achievements: string[];
+  avatar?: string;
+  joinDate?: string;
+}
+
+export enum Department {
+  Management = 'Management',
+  IT = 'IT',
+  Operations = 'Operations',
+  Design = 'Design',
+  Finance = 'Finance',
+  Marketing = 'Marketing',
+  Executive = 'Executive'
 }
 
 export interface Zone {
@@ -94,39 +105,14 @@ export interface TrainingModule {
   title: string;
   description: string;
   type: 'vr' | 'interactive' | 'video';
-  duration: number; // in minutes
+  duration: number;
   category: 'energy' | 'sustainability' | 'safety' | 'equipment';
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   completedBy: string[];
-  thumbnail: string;
   points: number;
   skills: string[];
   prerequisites?: string[];
   status: 'available' | 'locked' | 'completed';
-}
-
-export type Role = 'admin' | 'manager' | 'employee';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  role: Role;
-  department: string;
-  isManager: boolean;
-  avatar?: string;
-  badges: string[];
-  achievements: string[];
-  energyScore: number;
-  joinDate: string;
-  permissions: {
-    canViewAllData: boolean;
-    canEditUsers: boolean;
-    canManageRoles: boolean;
-    canViewAnalytics: boolean;
-    canExportData: boolean;
-  };
 }
 
 export interface QuizQuestion {
@@ -152,10 +138,63 @@ export interface QuizAttempt {
   timeTaken: number;
 }
 
-export interface AuthUser extends Omit<User, 'password'> {}
+export interface AuthUser extends Omit<User, 'password'> {
+  awePoints: number;
+  performanceScore: number;
+  position: { x: number; y: number };
+  laptopHours: number;
+}
 
-export enum Department {
-  Management = 'Management',
-  IT = 'IT',
-  Operations = 'Operations'
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'manager' | 'employee';
+  department: string;
+  isManager: boolean;
+  avatar?: string;
+  badges: string[];
+  achievements: string[];
+  energyScore: number;
+  joinDate: string;
+  permissions: {
+    canViewAllData: boolean;
+    canEditUsers: boolean;
+    canManageRoles: boolean;
+    canViewAnalytics: boolean;
+    canExportData: boolean;
+  };
+  teamMembers?: string[];
+  managerId?: string;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+export interface EmissionDataValidation {
+  minConsumption: number;
+  maxConsumption: number;
+  minEmissions: number;
+  maxEmissions: number;
+}
+
+export interface CreditTransaction {
+  id: string;
+  userId: string;
+  amount: number;
+  type: 'award' | 'conversion';
+  status: 'pending' | 'completed' | 'failed';
+  timestamp: string;
+  reason?: string;
+  retryCount: number;
+}
+
+export interface GamePreventionRules {
+  minTimeBetweenActions: number; // in milliseconds
+  maxActionsPerHour: number;
+  cooldownPeriod: number; // in milliseconds
+  suspiciousPatternThreshold: number;
 }

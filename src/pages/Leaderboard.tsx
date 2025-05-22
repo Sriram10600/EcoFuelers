@@ -2,12 +2,23 @@ import React from 'react';
 import { Trophy, Medal, Star, Zap } from 'lucide-react';
 import { getLeaderboard, getUserBadges } from '../data/mockData';
 import BadgeIcon from '../components/BadgeIcon';
+import InitialsAvatar from '../components/InitialsAvatar';
+import { useAuth } from '../contexts/AuthContext';
 
 const Leaderboard: React.FC = () => {
-  const leaderboardData = getLeaderboard();
+  const { user } = useAuth();
+  const leaderboardData = getLeaderboard().slice(0, 10);
 
   return (
-    <div className="p-4 md:p-6 max-w-screen-xl mx-auto">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto">
+      <div className="flex items-center gap-2 mb-6">
+        <Trophy className="w-6 h-6 text-yellow-500" />
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Top 10 Leaderboard</h1>
+          <p className="text-gray-500">Top performers in energy efficiency and sustainability</p>
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl shadow-sm">
         <div className="p-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -18,7 +29,7 @@ const Leaderboard: React.FC = () => {
 
         <div className="p-4">
           <div className="space-y-4">
-            {leaderboardData.slice(0, 10).map((employee, index) => {
+            {leaderboardData.map((employee, index) => {
               const userBadges = getUserBadges(employee.id);
               
               return (
@@ -48,11 +59,7 @@ const Leaderboard: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <img 
-                        src={employee.avatar} 
-                        alt={employee.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
+                      <InitialsAvatar name={employee.name} size="sm" />
                       <div>
                         <h3 className="font-medium text-gray-800">{employee.name}</h3>
                         <p className="text-sm text-gray-500">{employee.department}</p>

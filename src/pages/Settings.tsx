@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Bell, Moon, Sun, Shield, User, Globe } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Moon, Sun, Shield, User, Globe, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
-  const [language, setLanguage] = useState('en');
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(true);
+  const [dataSharing, setDataSharing] = useState(false);
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
@@ -43,47 +43,50 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        {/* Appearance Settings */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            {darkMode ? <Moon className="w-5 h-5 text-emerald-600" /> : <Sun className="w-5 h-5 text-emerald-600" />}
-            Appearance
-          </h2>
-          <div className="flex items-center justify-between">
-            <span className="text-gray-700">Dark Mode</span>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-                darkMode ? 'bg-emerald-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  darkMode ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
+        {/* Notifications Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+          <div className="p-4 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Bell className="w-5 h-5 text-emerald-600" />
+              Notifications
+            </h2>
           </div>
-        </div>
-
-        {/* Notification Settings */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Bell className="w-5 h-5 text-emerald-600" />
-            Notifications
-          </h2>
-          <div className="space-y-3">
+          <div className="p-4 space-y-4">
+            {/* Email Notifications */}
             <div className="flex items-center justify-between">
-              <span className="text-gray-700">Email Notifications</span>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-gray-400" />
+                <span className="text-gray-700">Email Notifications</span>
+              </div>
               <button
-                onClick={() => setNotifications(!notifications)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-                  notifications ? 'bg-emerald-600' : 'bg-gray-200'
+                  emailNotifications ? 'bg-emerald-600' : 'bg-gray-200'
                 }`}
+                onClick={() => setEmailNotifications(!emailNotifications)}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    notifications ? 'translate-x-6' : 'translate-x-1'
+                    emailNotifications ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Push Notifications */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Bell className="w-5 h-5 text-gray-400" />
+                <span className="text-gray-700">Push Notifications</span>
+              </div>
+              <button
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                  pushNotifications ? 'bg-emerald-600' : 'bg-gray-200'
+                }`}
+                onClick={() => setPushNotifications(!pushNotifications)}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    pushNotifications ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>
@@ -91,39 +94,39 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        {/* Language Settings */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Globe className="w-5 h-5 text-emerald-600" />
-            Language & Region
-          </h2>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-            </select>
+        {/* Privacy & Security Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-4 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-emerald-600" />
+              Privacy & Security
+            </h2>
           </div>
-        </div>
+          <div className="p-4 space-y-4">
+            {/* Data Sharing */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Shield className="w-5 h-5 text-gray-400" />
+                <span className="text-gray-700">Data Sharing</span>
+              </div>
+              <button
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                  dataSharing ? 'bg-emerald-600' : 'bg-gray-200'
+                }`}
+                onClick={() => setDataSharing(!dataSharing)}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    dataSharing ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
 
-        {/* Security Settings */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-emerald-600" />
-            Security
-          </h2>
-          <div className="space-y-3">
-            <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            {/* Change Password Button */}
+            <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+              <Lock className="w-4 h-4" />
               Change Password
-            </button>
-            <button className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-              Two-Factor Authentication
             </button>
           </div>
         </div>

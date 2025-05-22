@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Leaf, MenuIcon, Settings, User, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import InitialsAvatar from './InitialsAvatar';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -11,7 +12,21 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement>(null);
   
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -52,16 +67,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
         </div>
         
         <div className="flex items-center">
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button 
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 hover:bg-gray-100 rounded-full p-1 pr-3 transition-all"
             >
-              <img 
-                src={user?.avatar || "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=150"}
-                alt="User avatar"
-                className="w-8 h-8 rounded-full object-cover border border-gray-200"
-              />
+              <InitialsAvatar name={user?.name || 'User'} size="sm" />
               <div className="hidden sm:block text-left">
                 <span className="text-sm font-medium text-gray-700 block">{user?.name}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${getRoleBadgeColor(user?.role || 'employee')} capitalize`}>

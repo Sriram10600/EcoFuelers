@@ -1,4 +1,5 @@
-import { Employee, Zone, EnergyData, Achievement, TimeRange, WeeklyChallenge, EcoBadge, TrainingModule, QuizQuestion } from '../types';
+import { Employee, Zone, EnergyData, Achievement, TimeRange, WeeklyChallenge, EcoBadge, TrainingModule, QuizQuestion, Department } from '../types';
+import { validateEmissionData } from '../utils/validation';
 
 // Generate dates for the past month
 const generatePastDates = (days: number) => {
@@ -22,85 +23,113 @@ const generateStaticEnergyData = (): EnergyData[] => {
     return Number((min + (Math.random() * (max - min))).toFixed(2));
   };
 
-  return pastMonth.map(date => ({
-    timestamp: date,
-    totalConsumption: random(100, 150),
-    co2Emissions: random(40, 60),
-    savingsPercentage: random(0, 15),
-    breakdown: {
-      lighting: random(30, 45),
-      ac: random(40, 60),
-      laptops: random(20, 30),
-      other: random(10, 15)
+  return pastMonth.map(date => {
+    const consumption = random(100, 150);
+    const emissions = random(40, 60);
+    
+    // Validate the generated data
+    const validation = validateEmissionData(consumption, emissions);
+    if (!validation.isValid) {
+      console.error(`Invalid energy data generated for ${date}:`, validation.errors);
+      // Return safe default values if validation fails
+      return {
+        timestamp: date,
+        totalConsumption: 100,
+        co2Emissions: 40,
+        savingsPercentage: 0,
+        breakdown: {
+          lighting: 30,
+          ac: 40,
+          laptops: 20,
+          other: 10
+        }
+      };
     }
-  }));
+
+    return {
+      timestamp: date,
+      totalConsumption: consumption,
+      co2Emissions: emissions,
+      savingsPercentage: random(0, 15),
+      breakdown: {
+        lighting: random(30, 45),
+        ac: random(40, 60),
+        laptops: random(20, 30),
+        other: random(10, 15)
+      }
+    };
+  });
 };
 
 export const energyData: EnergyData[] = generateStaticEnergyData();
 
 // Admin
 export const admin: Employee = {
-  id: 'admin1',
-  name: 'John Anderson',
+  id: 'ADMIN001',
+  name: 'Alex Thompson',
   avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150',
-  department: 'Executive',
-  position: { x: 90, y: 10 },
-  laptopHours: 6.50,
-  isDarkMode: true,
-  awePoints: 850,
-  email: 'john.anderson@ecofuelers.com',
+  department: 'Management',
+  position: { x: 50, y: 50 },
+  laptopHours: 6.5,
+  awePoints: 1500,
+  email: 'admin@ecofuelers.com',
   role: 'admin',
   joinDate: '2023-01-01',
   performanceScore: 95,
-  energyScore: 92
+  energyScore: 95,
+  badges: ['System Admin', 'Master Controller', 'Data Analyst', 'Energy Expert'],
+  achievements: ['Completed system setup', 'Implemented security protocols']
 };
 
 // Managers
 export const managers: Employee[] = [
   {
-    id: 'mgr1',
-    name: 'Sarah Williams',
+    id: 'MGR001',
+    name: 'Sarah Wilson',
     avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150',
-    department: 'Engineering',
+    department: 'Management',
     position: { x: 25, y: 40 },
     laptopHours: 8.10,
-    isDarkMode: true,
     awePoints: 510,
-    email: 'manager@ecofuelers.com',
+    email: 'mgr001.management@ecofuelers.com',
     role: 'manager',
     joinDate: '2023-02-15',
     performanceScore: 88,
-    energyScore: 85
+    energyScore: 85,
+    badges: ['Team Leader', 'Energy Champion'],
+    achievements: ['Led team to 30% energy reduction']
   },
   {
-    id: 'mgr2',
+    id: 'MGR002',
     name: 'Michael Chen',
     avatar: 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=150',
-    department: 'Design',
+    department: 'IT',
     position: { x: 35, y: 30 },
     laptopHours: 7.50,
-    isDarkMode: false,
     awePoints: 480,
-    email: 'michael.chen@ecofuelers.com',
+    email: 'mgr002.it@ecofuelers.com',
     role: 'manager',
     joinDate: '2023-03-01',
     performanceScore: 92,
-    energyScore: 88
+    energyScore: 88,
+    badges: ['Tech Innovator', 'Energy Optimizer', 'Digital Pioneer'],
+    achievements: ['Deployed energy-efficient servers', 'Implemented power management system']
   },
   {
-    id: 'mgr3',
+    id: 'MGR003',
     name: 'Emily Rodriguez',
     avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
-    department: 'Marketing',
+    department: 'Operations',
     position: { x: 45, y: 60 },
     laptopHours: 7.20,
-    isDarkMode: true,
     awePoints: 340,
-    email: 'emily.rodriguez@ecofuelers.com',
+    email: 'mgr003.operations@ecofuelers.com',
     role: 'manager',
     joinDate: '2023-04-01',
     performanceScore: 90,
-    energyScore: 87
+    energyScore: 87,
+    badges: ['Process Optimizer', 'Sustainability Leader', 'Efficiency Expert'],
+    achievements: ['Optimized HVAC schedules', 'Reduced operational energy waste by 20%']
   },
   {
     id: 'mgr4',
@@ -109,7 +138,6 @@ export const managers: Employee[] = [
     department: 'Product',
     position: { x: 50, y: 30 },
     laptopHours: 5.20,
-    isDarkMode: true,
     awePoints: 280,
     email: 'david.kim@ecofuelers.com',
     role: 'manager',
@@ -124,7 +152,6 @@ export const managers: Employee[] = [
     department: 'Finance',
     position: { x: 30, y: 15 },
     laptopHours: 6.80,
-    isDarkMode: false,
     awePoints: 450,
     email: 'lisa.thompson@ecofuelers.com',
     role: 'manager',
@@ -134,25 +161,174 @@ export const managers: Employee[] = [
   }
 ];
 
-// Generate 10 employees for each manager with fixed laptop hours
-export const employees: Employee[] = managers.flatMap(manager => 
-  Array.from({ length: 10 }, (_, i) => ({
-    id: `emp-${manager.id}-${i + 1}`,
-    name: `Employee ${i + 1}`,
-    avatar: `https://images.pexels.com/photos/${1000000 + i}/pexels-photo-${1000000 + i}.jpeg?auto=compress&cs=tinysrgb&w=150`,
-    department: manager.department,
+// Generate employees with matching IDs from users.ts
+export const employees: Employee[] = [
+  {
+    id: 'EMP001',
+    name: 'David Wilson',
+    email: 'emp001.management@ecofuelers.com',
+    department: 'Management',
+    role: 'employee',
+    managerId: 'MGR001',
     position: { x: Math.random() * 100, y: Math.random() * 100 },
-    laptopHours: Number((5 + Math.random() * 4).toFixed(2)),
-    isDarkMode: Math.random() > 0.5,
-    awePoints: Math.floor(Math.random() * 300) + 100,
-    email: `employee${i + 1}.${manager.department.toLowerCase()}@ecofuelers.com`,
-    role: 'employee' as const,
-    managerId: manager.id,
-    joinDate: `2023-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-    performanceScore: Math.floor(Math.random() * 30) + 70,
-    energyScore: Math.floor(Math.random() * 30) + 70
-  }))
-);
+    laptopHours: 7.5,
+    awePoints: 320,
+    performanceScore: 85,
+    energyScore: 85,
+    badges: ['Energy Saver', 'Team Player'],
+    achievements: ['Implemented paperless workflow', 'Organized green office initiative']
+  },
+  {
+    id: 'EMP002',
+    name: 'Lisa Park',
+    email: 'emp002.management@ecofuelers.com',
+    department: 'Management',
+    role: 'employee',
+    managerId: 'MGR001',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 6.8,
+    awePoints: 280,
+    performanceScore: 87,
+    energyScore: 87,
+    badges: ['Project Star', 'Green Ambassador'],
+    achievements: ['Led sustainability projects', 'Reduced paper consumption by 30%']
+  },
+  {
+    id: 'EMP003',
+    name: 'James Taylor',
+    email: 'emp003.management@ecofuelers.com',
+    department: 'Management',
+    role: 'employee',
+    managerId: 'MGR001',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 7.2,
+    awePoints: 290,
+    performanceScore: 82,
+    energyScore: 82,
+    badges: ['Resource Guardian', 'Eco Warrior'],
+    achievements: ['Implemented recycling program', 'Organized energy awareness workshops']
+  },
+  {
+    id: 'EMP004',
+    name: 'Anna Martinez',
+    email: 'emp004.management@ecofuelers.com',
+    department: 'Management',
+    role: 'employee',
+    managerId: 'MGR001',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 7.8,
+    awePoints: 310,
+    performanceScore: 89,
+    energyScore: 89,
+    badges: ['Sustainability Champion', 'Green Innovator'],
+    achievements: ['Created sustainability guidelines', 'Led green building certification']
+  },
+  {
+    id: 'EMP005',
+    name: 'Kevin Zhang',
+    email: 'emp005.it@ecofuelers.com',
+    department: 'IT',
+    role: 'employee',
+    managerId: 'MGR002',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 7.1,
+    awePoints: 270,
+    performanceScore: 86,
+    energyScore: 86,
+    badges: ['Tech Guardian', 'Power Optimizer'],
+    achievements: ['Optimized server room cooling', 'Implemented automated power management']
+  },
+  {
+    id: 'EMP006',
+    name: 'Rachel Kim',
+    email: 'emp006.it@ecofuelers.com',
+    department: 'IT',
+    role: 'employee',
+    managerId: 'MGR002',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 6.9,
+    awePoints: 260,
+    performanceScore: 84,
+    energyScore: 84,
+    badges: ['Network Ninja', 'Energy Monitor'],
+    achievements: ['Optimized network infrastructure', 'Reduced network power consumption']
+  },
+  {
+    id: 'EMP007',
+    name: 'Tom Anderson',
+    email: 'emp007.it@ecofuelers.com',
+    department: 'IT',
+    role: 'employee',
+    managerId: 'MGR002',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 7.3,
+    awePoints: 250,
+    performanceScore: 83,
+    energyScore: 83,
+    badges: ['Support Star', 'Green IT Expert'],
+    achievements: ['Implemented eco-friendly IT practices', 'Led e-waste recycling program']
+  },
+  {
+    id: 'EMP008',
+    name: 'Sofia Patel',
+    email: 'emp008.operations@ecofuelers.com',
+    department: 'Operations',
+    role: 'employee',
+    managerId: 'MGR003',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 7.4,
+    awePoints: 300,
+    performanceScore: 88,
+    energyScore: 88,
+    badges: ['Maintenance Master', 'Energy Expert'],
+    achievements: ['Optimized equipment maintenance schedules', 'Reduced equipment energy waste']
+  },
+  {
+    id: 'EMP009',
+    name: 'Marcus Johnson',
+    email: 'emp009.operations@ecofuelers.com',
+    department: 'Operations',
+    role: 'employee',
+    managerId: 'MGR003',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 7.0,
+    awePoints: 280,
+    performanceScore: 85,
+    energyScore: 85,
+    badges: ['Building Expert', 'HVAC Specialist'],
+    achievements: ['Improved building energy efficiency', 'Implemented smart thermostat program']
+  },
+  {
+    id: 'EMP010',
+    name: 'Emma Thompson',
+    email: 'emp010.operations@ecofuelers.com',
+    department: 'Operations',
+    role: 'employee',
+    managerId: 'MGR003',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 7.6,
+    awePoints: 290,
+    performanceScore: 87,
+    energyScore: 87,
+    badges: ['Maintenance Pro', 'Resource Optimizer'],
+    achievements: ['Developed preventive maintenance program', 'Reduced maintenance-related energy waste']
+  },
+  {
+    id: 'EMP011',
+    name: 'Carlos Rivera',
+    email: 'emp011.operations@ecofuelers.com',
+    department: 'Operations',
+    role: 'employee',
+    managerId: 'MGR003',
+    position: { x: Math.random() * 100, y: Math.random() * 100 },
+    laptopHours: 7.7,
+    awePoints: 330,
+    performanceScore: 91,
+    energyScore: 91,
+    badges: ['Energy Master', 'Sustainability Pro'],
+    achievements: ['Conducted energy audits', 'Implemented energy monitoring system']
+  }
+];
 
 // Combine all employees for the admin view
 export const allEmployees = [admin, ...managers, ...employees];
@@ -457,7 +633,6 @@ export interface BehavioralPattern {
   patterns: {
     forgottenLaptopShutdowns: number;
     averageActiveHours: number;
-    darkModeUsage: number;
     peakEnergyHours: string[];
     commonIssues: string[];
     suggestions: string[];
@@ -523,7 +698,6 @@ export const generateBehavioralPatterns = (): BehavioralPattern[] => {
     patterns: {
       forgottenLaptopShutdowns: Math.floor(Math.random() * 5),
       averageActiveHours: 6 + Math.random() * 4,
-      darkModeUsage: employee.isDarkMode ? 85 + Math.random() * 15 : 20 + Math.random() * 30,
       peakEnergyHours: [
         `${8 + Math.floor(Math.random() * 2)}:00`,
         `${13 + Math.floor(Math.random() * 2)}:00`,
@@ -538,7 +712,6 @@ export const generateBehavioralPatterns = (): BehavioralPattern[] => {
         'Enable automatic screen timeout',
         'Reduce screen brightness during off-peak hours',
         'Use single monitor when possible',
-        'Enable dark mode for energy savings',
         'Schedule regular breaks to reduce device usage'
       ].slice(0, 2 + Math.floor(Math.random() * 2))
     },
@@ -576,7 +749,7 @@ export const weeklyChallengeMockData: WeeklyChallenge[] = [
     endDate: '2024-03-24',
     points: 100,
     participants: 45,
-    completedBy: ['emp-mgr1-1', 'emp-mgr2-3', 'mgr1'],
+    completedBy: ['EMP001', 'EMP002', 'MGR001'],
     type: 'individual',
     category: 'lighting',
     progress: 65,
@@ -586,8 +759,8 @@ export const weeklyChallengeMockData: WeeklyChallenge[] = [
   },
   {
     id: 'wc2',
-    title: 'Dark Mode Champions',
-    description: 'Keep dark mode enabled on all devices for the entire week.',
+    title: 'Energy Champions',
+    description: 'Reduce energy consumption on all devices for the entire week.',
     startDate: '2024-03-25',
     endDate: '2024-03-31',
     points: 150,
@@ -608,7 +781,7 @@ export const weeklyChallengeMockData: WeeklyChallenge[] = [
     endDate: '2024-03-17',
     points: 120,
     participants: 52,
-    completedBy: ['emp-mgr3-2', 'mgr2', 'emp-mgr1-4'],
+    completedBy: ['EMP003', 'MGR002', 'EMP004'],
     type: 'individual',
     category: 'equipment',
     progress: 100,
@@ -628,18 +801,18 @@ export const ecoBadgesMockData: EcoBadge[] = [
     category: 'energy',
     level: 'platinum',
     pointsRequired: 1000,
-    unlockedBy: ['emp-mgr1-1', 'mgr1', 'admin1'],
+    unlockedBy: ['ADMIN001', 'MGR001', 'MGR002'],
     dateCreated: '2024-01-01'
   },
   {
     id: 'badge2',
-    name: 'Dark Mode Warrior',
-    description: 'Used dark mode for 30 days straight',
-    icon: 'Moon',
+    name: 'Energy Warrior',
+    description: 'Maintained optimal energy settings for 30 days straight',
+    icon: 'Zap',
     category: 'energy',
     level: 'gold',
     pointsRequired: 750,
-    unlockedBy: ['emp-mgr2-3', 'mgr2', 'emp-mgr1-1'],
+    unlockedBy: ['EMP001', 'EMP003', 'EMP005'],
     dateCreated: '2024-01-15'
   },
   {
@@ -650,7 +823,7 @@ export const ecoBadgesMockData: EcoBadge[] = [
     category: 'teamwork',
     level: 'platinum',
     pointsRequired: 1000,
-    unlockedBy: ['mgr1', 'mgr3', 'admin1'],
+    unlockedBy: ['MGR001', 'MGR003', 'ADMIN001'],
     dateCreated: '2024-02-01'
   },
   {
@@ -661,131 +834,26 @@ export const ecoBadgesMockData: EcoBadge[] = [
     category: 'innovation',
     level: 'gold',
     pointsRequired: 800,
-    unlockedBy: ['emp-mgr3-2', 'emp-mgr1-4', 'mgr2'],
+    unlockedBy: ['EMP002', 'EMP004', 'MGR002'],
     dateCreated: '2024-02-15'
   },
   {
     id: 'badge5',
-    name: 'Natural Light Advocate',
-    description: 'Utilized natural light for 90% of working hours',
-    icon: 'Sun',
-    category: 'sustainability',
-    level: 'silver',
-    pointsRequired: 500,
-    unlockedBy: ['emp-mgr2-1', 'emp-mgr3-3', 'mgr4'],
-    dateCreated: '2024-02-20'
-  },
-  {
-    id: 'badge6',
     name: 'Equipment Efficiency Expert',
     description: 'Maintained optimal equipment settings for 2 months',
     icon: 'Settings',
     category: 'energy',
     level: 'gold',
     pointsRequired: 700,
-    unlockedBy: ['mgr5', 'emp-mgr4-2', 'admin1'],
+    unlockedBy: ['EMP008', 'EMP010', 'MGR003'],
     dateCreated: '2024-03-01'
-  },
-  {
-    id: 'badge7',
-    name: 'Zero Waste Pioneer',
-    description: 'Achieved zero waste for 30 consecutive days',
-    icon: 'Trash',
-    category: 'sustainability',
-    level: 'platinum',
-    pointsRequired: 1000,
-    unlockedBy: ['mgr2', 'emp-mgr1-2'],
-    dateCreated: '2024-03-05'
-  },
-  {
-    id: 'badge8',
-    name: 'Energy Mentor',
-    description: 'Helped 5 colleagues improve their energy scores',
-    icon: 'GraduationCap',
-    category: 'teamwork',
-    level: 'silver',
-    pointsRequired: 600,
-    unlockedBy: ['emp-mgr3-1', 'mgr1', 'mgr4'],
-    dateCreated: '2024-03-10'
-  },
-  {
-    id: 'badge9',
-    name: 'Carbon Footprint Reducer',
-    description: 'Reduced carbon emissions by 30%',
-    icon: 'Leaf',
-    category: 'sustainability',
-    level: 'gold',
-    pointsRequired: 800,
-    unlockedBy: ['admin1', 'mgr3', 'emp-mgr2-4'],
-    dateCreated: '2024-03-15'
-  },
-  {
-    id: 'badge10',
-    name: 'Challenge Champion',
-    description: 'Won 5 weekly energy challenges',
-    icon: 'Trophy',
-    category: 'innovation',
-    level: 'platinum',
-    pointsRequired: 1000,
-    unlockedBy: ['mgr1', 'emp-mgr1-1'],
-    dateCreated: '2024-03-20'
-  },
-  {
-    id: 'badge11',
-    name: 'Eco-Innovation Star',
-    description: 'Implemented 3 new eco-friendly office practices',
-    icon: 'Star',
-    category: 'innovation',
-    level: 'gold',
-    pointsRequired: 750,
-    unlockedBy: ['emp-mgr4-3', 'mgr2', 'mgr5'],
-    dateCreated: '2024-03-25'
-  },
-  {
-    id: 'badge12',
-    name: 'Energy Data Analyst',
-    description: 'Provided valuable insights from energy consumption data',
-    icon: 'BarChart',
-    category: 'innovation',
-    level: 'silver',
-    pointsRequired: 500,
-    unlockedBy: ['emp-mgr2-2', 'mgr3'],
-    dateCreated: '2024-03-30'
-  },
-  {
-    id: 'badge13',
-    name: 'Sustainability Ambassador',
-    description: 'Promoted eco-friendly practices across departments',
-    icon: 'Globe',
-    category: 'teamwork',
-    level: 'platinum',
-    pointsRequired: 1000,
-    unlockedBy: ['admin1', 'mgr4', 'emp-mgr1-3'],
-    dateCreated: '2024-04-01'
-  },
-  {
-    id: 'badge14',
-    name: 'Green Technology Pioneer',
-    description: 'Early adopter of new energy-saving technologies',
-    icon: 'Cpu',
-    category: 'innovation',
-    level: 'gold',
-    pointsRequired: 800,
-    unlockedBy: ['mgr5', 'emp-mgr3-4'],
-    dateCreated: '2024-04-05'
-  },
-  {
-    id: 'badge15',
-    name: 'Team Energy Guardian',
-    description: 'Maintained lowest team energy consumption for 3 months',
-    icon: 'Shield',
-    category: 'teamwork',
-    level: 'platinum',
-    pointsRequired: 1000,
-    unlockedBy: ['mgr1', 'mgr2', 'admin1'],
-    dateCreated: '2024-04-10'
   }
 ];
+
+// Helper function to get user badges
+export const getUserBadges = (userId: string): EcoBadge[] => {
+  return ecoBadgesMockData.filter(badge => badge.unlockedBy.includes(userId));
+};
 
 // Training Modules
 export const trainingModulesMockData: TrainingModule[] = [
@@ -797,40 +865,49 @@ export const trainingModulesMockData: TrainingModule[] = [
     duration: 20,
     category: 'energy',
     difficulty: 'beginner',
-    completedBy: ['emp-mgr1-1', 'mgr1'],
+    completedBy: ['EMP001', 'MGR001'],
     thumbnail: 'https://images.pexels.com/photos/7915357/pexels-photo-7915357.jpeg?auto=compress&cs=tinysrgb&w=300',
     points: 100,
-    skills: ['energy efficiency', 'sustainability awareness'],
-    status: 'available'
+    status: 'completed'
   },
   {
     id: 'tm2',
-    title: 'Advanced Equipment Management',
-    description: 'Learn how to optimize energy usage of office equipment through VR simulation.',
-    type: 'vr',
-    duration: 30,
+    title: 'Smart Device Management',
+    description: 'Learn how to optimize your device settings for maximum energy efficiency.',
+    type: 'interactive',
+    duration: 15,
     category: 'equipment',
-    difficulty: 'advanced',
-    completedBy: ['mgr2'],
-    thumbnail: 'https://images.pexels.com/photos/8728560/pexels-photo-8728560.jpeg?auto=compress&cs=tinysrgb&w=300',
-    points: 150,
-    skills: ['equipment optimization', 'energy management'],
-    prerequisites: ['tm1'],
-    status: 'locked'
+    difficulty: 'beginner',
+    completedBy: ['EMP002', 'EMP003', 'MGR002'],
+    thumbnail: 'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=300',
+    points: 75,
+    status: 'available'
   },
   {
     id: 'tm3',
+    title: 'Advanced HVAC Operations',
+    description: 'Deep dive into HVAC systems and their optimal usage patterns.',
+    type: 'video',
+    duration: 30,
+    category: 'equipment',
+    difficulty: 'advanced',
+    completedBy: ['MGR003', 'EMP008'],
+    thumbnail: 'https://images.pexels.com/photos/442150/pexels-photo-442150.jpeg?auto=compress&cs=tinysrgb&w=300',
+    points: 150,
+    status: 'locked'
+  },
+  {
+    id: 'tm4',
     title: 'Sustainable Office Practices',
-    description: 'Interactive course on daily sustainable practices in the office.',
+    description: 'Learn everyday practices to create a more sustainable workplace.',
     type: 'interactive',
-    duration: 15,
+    duration: 25,
     category: 'sustainability',
     difficulty: 'intermediate',
-    completedBy: ['emp-mgr2-3', 'emp-mgr1-4'],
-    thumbnail: 'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=300',
-    points: 75,
-    skills: ['sustainability', 'workplace efficiency'],
-    status: 'available'
+    completedBy: ['EMP004', 'EMP005', 'MGR001'],
+    thumbnail: 'https://images.pexels.com/photos/3182755/pexels-photo-3182755.jpeg?auto=compress&cs=tinysrgb&w=300',
+    points: 120,
+    status: 'completed'
   }
 ];
 
@@ -841,10 +918,6 @@ export const getCurrentWeeklyChallenge = () => {
 
 export const getUpcomingChallenges = () => {
   return weeklyChallengeMockData.filter(challenge => challenge.status === 'upcoming');
-};
-
-export const getUserBadges = (userId: string) => {
-  return ecoBadgesMockData.filter(badge => badge.unlockedBy.includes(userId));
 };
 
 export const getAvailableTrainingModules = (userId: string) => {
@@ -1020,4 +1093,81 @@ export const quizQuestions: QuizQuestion[] = [
 export const getRandomQuizQuestions = (count: number = 5): QuizQuestion[] => {
   const shuffled = [...quizQuestions].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
+};
+
+// Mock team members data
+const teamMembers: Employee[] = [
+  {
+    id: 'emp-mgr1-1',
+    name: 'John Manager',
+    email: 'john.manager@ecofuelers.com',
+    department: 'Engineering',
+    role: 'manager',
+    position: { x: 0, y: 0 },
+    laptopHours: 8,
+    awePoints: 1200,
+    performanceScore: 92,
+    energyScore: 88,
+    badges: ['Energy Pioneer', 'Dark Mode Warrior'],
+    achievements: ['Reduced team energy consumption by 15%']
+  },
+  {
+    id: 'emp-mgr1-2',
+    name: 'Sarah Lead',
+    email: 'sarah.lead@ecofuelers.com',
+    department: 'Design',
+    role: 'manager',
+    position: { x: 1, y: 0 },
+    laptopHours: 7,
+    awePoints: 980,
+    performanceScore: 88,
+    energyScore: 85,
+    badges: ['Team Sustainability Champion'],
+    achievements: ['Led design team to paperless workflow']
+  },
+  // Add more team members as needed
+];
+
+// Mock departments data
+const departments: Department[] = [
+  {
+    id: 'dept-1',
+    name: 'Engineering',
+    description: 'Software development and infrastructure'
+  },
+  {
+    id: 'dept-2',
+    name: 'Design',
+    description: 'UI/UX and product design'
+  },
+  {
+    id: 'dept-3',
+    name: 'Operations',
+    description: 'Business operations and support'
+  },
+  // Add more departments as needed
+];
+
+export const getTeamMembers = (): Employee[] => {
+  return teamMembers;
+};
+
+export const getDepartments = (): Department[] => {
+  return departments;
+};
+
+// Track user actions for anti-gaming
+const userActions: Map<string, { timestamp: number; type: string }[]> = new Map();
+
+export const trackUserAction = (userId: string, actionType: string) => {
+  const actions = userActions.get(userId) || [];
+  actions.push({
+    timestamp: Date.now(),
+    type: actionType
+  });
+  userActions.set(userId, actions);
+};
+
+export const getUserActions = (userId: string) => {
+  return userActions.get(userId) || [];
 };

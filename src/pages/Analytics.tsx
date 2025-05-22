@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart2, TrendingUp, Calendar, ArrowUpRight, ArrowDownRight, Download } from 'lucide-react';
 import { TimeRange } from '../types';
-import { getAnalyticsData } from '../data/mockData';
+import { getAnalyticsData, trackUserAction, getUserActions } from '../data/mockData';
+import { validateEmissionData, validateAndProcessUserAction } from '../utils/validation';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,9 +30,49 @@ ChartJS.register(
 );
 
 const Analytics: React.FC = () => {
+  const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRange>('day');
+  const [error, setError] = useState<string | null>(null);
   const analyticsData = getAnalyticsData(timeRange);
   
+  // Validate current data
+  useEffect(() => {
+    if (analyticsData.length > 0) {
+      const currentData = analyticsData[analyticsData.length - 1];
+      const validation = validateEmissionData(
+        currentData.actualConsumption,
+        currentData.co2Emissions
+      );
+
+      if (!validation.isValid) {
+        setError(validation.errors.join(', '));
+      } else {
+        setError(null);
+      }
+    }
+  }, [analyticsData]);
+
+  // Track time range changes to prevent gaming
+  const handleTimeRangeChange = async (newRange: TimeRange) => {
+    if (user) {
+      const result = await validateAndProcessUserAction(
+        user.id,
+        'change_time_range',
+        0,
+        getUserActions(user.id)
+      );
+
+      if (result.success) {
+        setTimeRange(newRange);
+        trackUserAction(user.id, 'change_time_range');
+      } else {
+        setError(result.message);
+      }
+    } else {
+      setTimeRange(newRange);
+    }
+  };
+
   // Calculate overall trends
   const currentData = analyticsData[analyticsData.length - 1];
   const previousData = analyticsData[analyticsData.length - 2] || analyticsData[analyticsData.length - 1];
@@ -150,34 +192,17 @@ const Analytics: React.FC = () => {
   return (
     <div className="p-4 md:p-6 max-w-screen-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <BarChart2 className="w-6 h-6 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-800">Analytics & Predictions</h1>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            {(['day', 'week', 'month'] as TimeRange[]).map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  timeRange === range
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                {range.charAt(0).toUpperCase() + range.slice(1)}
-              </button>
-            ))}
-          </div>
-          
-          <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-            <Download size={16} />
-            <span>Export</span>
-          </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Analytics</h1>
+          <p className="text-gray-500">Monitor energy usage and efficiency metrics</p>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">

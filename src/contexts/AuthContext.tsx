@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
-import { users, AuthUser } from '../data/users';
+import { users } from '../data/users';
+import { AuthUser } from '../types';
+import { getUserById } from '../data/mockData';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -25,23 +27,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const user = users.find(u => u.email === email && u.password === password);
-      if (!user) {
+      const foundUser = users.find(u => u.email === email && u.password === password);
+      if (!foundUser) {
         throw new Error('Invalid credentials');
       }
-      
-      // Store user in localStorage (exclude password)
-      const { password: _, ...userWithoutPassword } = user;
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      setUser(user);
+
+      const employeeData = getUserById(foundUser.id);
+      const userData: AuthUser = {
+        ...foundUser,
+        awePoints: employeeData?.awePoints || 0,
+        performanceScore: employeeData?.performanceScore || 0,
+        position: employeeData?.position || { x: 0, y: 0 },
+        laptopHours: employeeData?.laptopHours || 0,
+      };
+
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Sign in error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   const signOut = async () => {
-    localStorage.removeItem('user');
     setUser(null);
+    localStorage.removeItem('user');
   };
 
   return (
