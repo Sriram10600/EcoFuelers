@@ -88,6 +88,15 @@ const OfficeMap: React.FC<OfficeMapProps> = ({ className = '' }) => {
   
   const handleOptimizeSeating = () => {
     calculateSeatingOptimization();
+    // Add auto-scrolling to optimization suggestions with offset
+    setTimeout(() => {
+      const suggestionsElement = document.querySelector('.optimization-suggestions');
+      if (suggestionsElement) {
+        const yOffset = -100; // Add offset to show suggestions closer to the top
+        const y = suggestionsElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   // Zone layout configuration
@@ -181,65 +190,68 @@ const OfficeMap: React.FC<OfficeMapProps> = ({ className = '' }) => {
       </div>
       
       <div className="space-y-4 p-4">
-        {/* Floor Plan */}
-        <div>
-          {isLoading ? (
-            <div className="h-[500px] flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-            </div>
-          ) : (
-            <div className="relative h-[500px] border border-gray-200 rounded-lg overflow-hidden bg-gradient-to-br from-gray-50 to-white">
-              {/* Grid lines for visual reference */}
-              <div className="absolute inset-0" style={{
-                backgroundImage: 'linear-gradient(to right, #f0f0f0 1px, transparent 1px), linear-gradient(to bottom, #f0f0f0 1px, transparent 1px)',
-                backgroundSize: '20px 20px'
-              }} />
+        {/* Floor Plan and Optimization Suggestions Container */}
+        <div className="space-y-4">
+          {/* Floor Plan */}
+          <div>
+            {isLoading ? (
+              <div className="h-[500px] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+              </div>
+            ) : (
+              <div className="relative h-[500px] border border-gray-200 rounded-lg overflow-hidden bg-gradient-to-br from-gray-50 to-white">
+                {/* Grid lines for visual reference */}
+                <div className="absolute inset-0" style={{
+                  backgroundImage: 'linear-gradient(to right, #f0f0f0 1px, transparent 1px), linear-gradient(to bottom, #f0f0f0 1px, transparent 1px)',
+                  backgroundSize: '20px 20px'
+                }} />
 
-              {/* Zones */}
-              {zones.map(zone => {
-                const layout = zoneLayout[zone.id as keyof typeof zoneLayout];
-                return (
-                  <div 
-                    key={zone.id}
-                    onMouseEnter={() => setHoveredZone(zone)}
-                    onMouseLeave={() => setHoveredZone(null)}
-                    className={`absolute border-2 rounded-lg transition-all duration-300 ${
-                      hoveredZone?.id === zone.id 
-                        ? 'bg-blue-50 border-blue-400 shadow-lg' 
-                        : 'border-gray-200 bg-white bg-opacity-60'
-                    }`}
-                    style={{
-                      left: layout.left,
-                      top: layout.top,
-                      width: layout.width,
-                      height: layout.height,
-                    }}
-                  >
-                    {/* Zone header */}
-                    <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
-                      <div className="bg-white px-2 py-1 rounded-md shadow-sm">
-                        <h3 className="text-sm font-medium text-gray-800">{layout.name}</h3>
+                {/* Zones */}
+                {zones.map(zone => {
+                  const layout = zoneLayout[zone.id as keyof typeof zoneLayout];
+                  return (
+                    <div 
+                      key={zone.id}
+                      onMouseEnter={() => setHoveredZone(zone)}
+                      onMouseLeave={() => setHoveredZone(null)}
+                      className={`absolute border-2 rounded-lg transition-all duration-300 ${
+                        hoveredZone?.id === zone.id 
+                          ? 'bg-blue-50 border-blue-400 shadow-lg' 
+                          : 'border-gray-200 bg-white bg-opacity-60'
+                      }`}
+                      style={{
+                        left: layout.left,
+                        top: layout.top,
+                        width: layout.width,
+                        height: layout.height,
+                      }}
+                    >
+                      {/* Zone header */}
+                      <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
+                        <div className="bg-white px-2 py-1 rounded-md shadow-sm">
+                          <h3 className="text-sm font-medium text-gray-800">{layout.name}</h3>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-md shadow-sm">
+                          <span className="text-xs text-gray-600">Status:</span>
+                          <div className={`h-2 w-2 rounded-full ${zone.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-md shadow-sm">
-                        <span className="text-xs text-gray-600">Status:</span>
-                        <div className={`h-2 w-2 rounded-full ${zone.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
-                      </div>
+
+                      {/* Zone metrics */}
+                      <ZoneMetrics zone={zone} />
+
+                      {/* Zone employee count */}
+                      <ZoneEmployeeCount zone={zone} />
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-                    {/* Zone metrics */}
-                    <ZoneMetrics zone={zone} />
-
-                    {/* Zone employee count */}
-                    <ZoneEmployeeCount zone={zone} />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Optimization suggestions */}
+          {/* Optimization suggestions - Moved up in the hierarchy */}
           {optimizationSuggestions.length > 0 && (
-            <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+            <div className="optimization-suggestions bg-emerald-50 border border-emerald-200 rounded-lg p-3">
               <h4 className="text-sm font-medium text-emerald-800 mb-2">Optimization Suggestions:</h4>
               <ul className="space-y-1">
                 {optimizationSuggestions.map((suggestion, index) => (
@@ -255,7 +267,7 @@ const OfficeMap: React.FC<OfficeMapProps> = ({ className = '' }) => {
 
         {/* Details panel */}
         <div className="p-4 border border-gray-100 bg-gray-50 rounded-xl">
-          {hoveredZone ? (
+          {hoveredZone ?
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-gray-800">{hoveredZone.name}</h3>
@@ -288,11 +300,11 @@ const OfficeMap: React.FC<OfficeMapProps> = ({ className = '' }) => {
                 </div>
               </div>
             </div>
-          ) : (
+          :
             <p className="text-sm text-gray-500">
-              Hover over a zone to view detailed energy statistics and team information.
+              View zone details by hovering over any area on the map.
             </p>
-          )}
+          }
         </div>
 
         {/* AI Predictions */}
